@@ -25,7 +25,7 @@ class SignalDashboard:
 
         # Subplot kamera
         self.ax_cam = self.fig.add_subplot(gs[:, 1])
-        self.ax_cam.set_title("Kamera (Titik Bahu)")
+        self.ax_cam.set_title("Camera)")
         self.img_cam = self.ax_cam.imshow(np.zeros((480, 640, 3), dtype=np.uint8))
         self.ax_cam.axis("off")
 
