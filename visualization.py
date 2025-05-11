@@ -38,9 +38,16 @@ class SignalDashboard:
         if not ret:
             return
 
+        # Ambil dan gambar kotak hijau di jidat
+        rect = self.rppg.get_forehead_rect()
+        if rect:
+            x1, y1, x2, y2 = rect
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
         frame = cv2.resize(frame, (640, 480))
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        
         self.rppg.extract_rgb_from_frame(frame)
         self.resp.extract_resp_from_frame(frame)
 
