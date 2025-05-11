@@ -16,7 +16,7 @@ Bayangkan memantau kondisi tubuh cukup lewat kamera laptop atau smartphone—tan
 |----------------------------|---------------|-----------------------|
 | Cindy Nadila Putri         | 122140002    | [cindynadilaptr](https://github.com/cindynadilaptr) |
 | M. Arief Rahman Hakim                      | 122140083    | [akuayip](https://github.com/akuayip)               |
-| Zidan Raihan             | 122140100    | [zidanrhn12](https://github.com/zidamrhn12)               |
+| Zidan Raihan             | 122140100    | [zidbytes](https://github.com/zidbytes)               |
 ---
 
 ## 🗓️ Logbook Harian
