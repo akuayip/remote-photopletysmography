@@ -46,7 +46,7 @@ source .venv/bin/activate # aktivasi venv MacOS/Linux
 ```
 3. Install library yang dibutuhkan program dari `requirements.txt`:
 ```bash
-pip install -r requirements.txt
+pip install -U -r requirements.txt
 ```
 4. Jalankan program utama yaitu `main_dashboard.py` secara langsung, atau melalui terminal:
 ```bash
