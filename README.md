@@ -25,7 +25,7 @@ Bayangkan memantau kondisi tubuh cukup lewat kamera laptop atau smartphone—tan
 |--------|--------------------------------------------------------------------------|------------------------------------------------------------------------|
 | 29/04/2025      | Membuat repository github                              |   ![Minggu1](logbookPIC/29april2025.png)                                        |
 | 11/05/2025      | Membuat requirements-txt, fitur respiratory dan rPPG                      | ![Minggu 1](logbookPIC/11may2025.jpg)                                         |
-
+| 17/05/2025      | Merancang GUI dan Try and Error Filter                  | Lupa dokumentasi :)                                                                                              |
 
 ---
 
