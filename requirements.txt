@@ -3,3 +3,5 @@ opencv-python
 mediapipe
 matplotlib
 scipy
+PyQt6
+pyqtgraph
