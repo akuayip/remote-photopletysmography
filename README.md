@@ -31,6 +31,28 @@ Bayangkan memantau kondisi tubuh cukup lewat kamera laptop atau smartphone—tan
 
 ## 💻 Instruksi Instalasi
 
-....
+Panduan ini menjelaskan langkah-langkah untuk menyiapkan dan menjalankan project Python secara lokal **tanpa perlu melakukan clone dari GitHub**. Pastikan kamu sudah memiliki folder project di komputer (hasil download, ekstrak zip, atau salinan dari flashdisk).
+
+1. Buka terminal atau command prompt untuk masuk ke direktori project yang akan dijalankan.
+```bash
+cd path/ke/folder-project
+```
+
+2. Buat dan aktifkan virtual environtment menggunakan uv untuk menjalankan kode program yang ada di dalam project, contoh:
+```bash
+uv venv --python=python3.10 # membuat virtual environtment
+.venv/Scripts/activate # aktivasi venv windows
+source .venv/bin/activate # aktivasi venv MacOS/Linux
+```
+3. Install library yang dibutuhkan program dari `requirements.txt`:
+```bash
+pip install -U -r requirements.txt
+```
+4. Jalankan program utama yaitu `main_dashboard.py` secara langsung, atau melalui terminal:
+```bash
+python main_dashboard.py
+```
+
+---
 
 
