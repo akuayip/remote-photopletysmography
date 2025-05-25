@@ -148,9 +148,13 @@ class SignalDashboardGUI(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        layout = QGridLayout(central_widget)
-        layout.setSpacing(10)
+        central_layout = QVBoxLayout(central_widget)
 
+        # Splitter utama horizontal: kiri = grafik, kanan = video + nilai
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        central_layout.addWidget(main_splitter)
+
+        # --- KIRI: GRAFIK SINYAL ---
         self.rppg_plot = pg.PlotWidget()
         self.rppg_plot.setTitle("Monitor sinyal rPPG")
         self.rppg_plot.setLabel('left', 'Amplitude')
@@ -168,12 +172,14 @@ class SignalDashboardGUI(QMainWindow):
         signal_splitter.addWidget(self.resp_plot)
         signal_splitter.setSizes([1, 1])
 
-        layout.addWidget(signal_splitter, 0, 0, 2, 1)
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        left_layout.addWidget(signal_splitter)
+        main_splitter.addWidget(left_widget)
 
-        video_frame = QVBoxLayout()
-
+        # --- KANAN: VIDEO + LABEL HR/RR ---
         self.video_label = QLabel()
-        self.video_label.setFixedSize(640, 480)
+        self.video_label.setFixedSize(320, 240)
         self.video_label.setStyleSheet("border: 1px solid gray; background-color: #ddd;")
 
         self.camera_combo = QComboBox()
@@ -181,13 +187,11 @@ class SignalDashboardGUI(QMainWindow):
             self.camera_combo.addItem(f"{cam_name} (ID: {cam_id})", cam_id)
         self.camera_combo.currentIndexChanged.connect(self.change_camera)
 
-        video_frame.addWidget(self.video_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        video_frame.addWidget(self.camera_combo, alignment=Qt.AlignmentFlag.AlignCenter)
+        video_layout = QVBoxLayout()
+        video_layout.addWidget(self.video_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        video_layout.addWidget(self.camera_combo, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        layout.addLayout(video_frame, 0, 1)
-
-        rate_layout = QHBoxLayout()
-
+        # Label RR
         rr_title = QLabel("RR (rpm)")
         rr_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         rr_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -198,11 +202,10 @@ class SignalDashboardGUI(QMainWindow):
         self.rr_label.setStyleSheet("color: green; border: 1px solid blue; padding: 10px;")
 
         rr_container = QVBoxLayout()
-        rr_container.setSpacing(0)
-        rr_container.setContentsMargins(0, 0, 0, 0)
         rr_container.addWidget(rr_title)
         rr_container.addWidget(self.rr_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        # Label HR
         hr_title = QLabel("rPPG (bpm)")
         hr_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         hr_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -213,14 +216,25 @@ class SignalDashboardGUI(QMainWindow):
         self.hr_label.setStyleSheet("color: red; border: 1px solid blue; padding: 10px;")
 
         hr_container = QVBoxLayout()
-        hr_container.setSpacing(0)
-        hr_container.setContentsMargins(0, 0, 0, 0)
         hr_container.addWidget(hr_title)
         hr_container.addWidget(self.hr_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        # Gabungkan rate display
+        rate_layout = QHBoxLayout()
         rate_layout.addLayout(rr_container)
         rate_layout.addLayout(hr_container)
-        layout.addLayout(rate_layout, 1, 1)
+
+        # Gabungkan video + rate
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        right_layout.addLayout(video_layout)
+        right_layout.addSpacing(10)
+        right_layout.addLayout(rate_layout)
+        main_splitter.addWidget(right_widget)
+
+        # Lebih banyak space untuk grafik
+        main_splitter.setSizes([900, 300])
+
 
     def setup_timer(self):
         self.timer = QTimer()
@@ -253,7 +267,12 @@ class SignalDashboardGUI(QMainWindow):
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_frame.shape
         qt_img = QImage(rgb_frame.data, w, h, w * ch, QImage.Format.Format_RGB888)
-        self.video_label.setPixmap(QPixmap.fromImage(qt_img))
+        scaled_img = QPixmap.fromImage(qt_img).scaled(
+            self.video_label.width(), self.video_label.height(),
+            Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+        )
+        self.video_label.setPixmap(scaled_img)
+
 
         self.rppg_curve.setData(self.rppg.get_filtered_rppg()[-200:])
         self.resp_curve.setData(self.resp.get_filtered_resp()[-200:])
