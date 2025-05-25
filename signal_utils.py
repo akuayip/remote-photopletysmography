@@ -7,6 +7,7 @@ from scipy.signal import butter, filtfilt, find_peaks, savgol_filter
 # FILTERS
 # ==========================================
 
+
 def bandpass_filter_rppg(data, fs=30, low=0.9, high=2.4, order=3):
     """
     Bandpass filter for rPPG signal (heart rate domain).
@@ -15,10 +16,11 @@ def bandpass_filter_rppg(data, fs=30, low=0.9, high=2.4, order=3):
     b, a = butter(order, [low, high], btype='band', fs=fs)
     return filtfilt(b, a, data)
 
-def bandpass_filter_respirasi(data, fs=30, low=0.1, high=0.5, order=3):
+
+def bandpass_filter_respirasi(data, fs=30, low=0.2, high=0.33, order=3):
     """
     Bandpass filter for respiration signal (shoulder movement domain).
-    Default: 6–30 breaths/min (0.1–0.5 Hz)
+    Default: 12–20 breaths/min (0.2–0.33 Hz)
     """
     b, a = butter(order, [low, high], btype='band', fs=fs)
     return filtfilt(b, a, data)
@@ -26,6 +28,7 @@ def bandpass_filter_respirasi(data, fs=30, low=0.1, high=0.5, order=3):
 # ==========================================
 # HEART & RESPIRATION RATE CALCULATION
 # ==========================================
+
 
 def calculate_heart_rate(signal, fs=30, prominence=0.5):
     """
@@ -36,6 +39,7 @@ def calculate_heart_rate(signal, fs=30, prominence=0.5):
     duration_sec = len(signal) / fs
     bpm = 60 * len(peaks) / duration_sec
     return bpm, peaks
+
 
 def calculate_respiration_rate(signal, fs=30, prominence=0.1):
     """
@@ -51,12 +55,14 @@ def calculate_respiration_rate(signal, fs=30, prominence=0.1):
 # UTILITY
 # ==========================================
 
+
 def normalize_signal(signal):
     """
     Normalize signal to zero mean and unit variance.
     """
     signal = np.array(signal)
     return (signal - np.mean(signal)) / (np.std(signal) + 1e-8)
+
 
 def smooth_signal(signal, window=11, polyorder=2):
     """
