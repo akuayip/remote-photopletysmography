@@ -17,8 +17,6 @@ class RespirasiProcessor:
         self.shoulder_points = []
         self.smoothed_signal = deque(maxlen=smoothing_window)
         self.fps = fps
-        # Untuk menyimpan frame sebelumnya (Farneback Optical Flow)
-        self.prev_gray = None
 
     def extract_resp_from_frame(self, frame):
         h, w, _ = frame.shape
@@ -57,9 +55,6 @@ class RespirasiProcessor:
             self.shoulder_motion_signal.append(0)
             self.shoulder_points.append(((0, 0), (0, 0)))
 
-        # Gunakan Farneback Optical Flow untuk memperhalus sinyal
-        self._apply_optical_flow(frame)
-
         # Filter sinyal respirasi dan hitung RR (napas per menit)
         if len(self.shoulder_motion_signal) >= 30:
             self.filtered_signal = bandpass_filter_respirasi(
@@ -70,38 +65,12 @@ class RespirasiProcessor:
             self.filtered_signal = self.shoulder_motion_signal
             self.respiration_rate = 0
 
-    def _apply_optical_flow(self, frame):
-        # Konversi frame ke grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        if self.prev_gray is not None:
-            # Hitung optical flow menggunakan metode Farneback
-            flow = cv2.calcOpticalFlowFarneback(
-                self.prev_gray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0
-            )
-
-            # Ambil pergerakan vertikal (sumbu y) dari optical flow
-            flow_y = flow[..., 1]
-
-            # Hitung rata-rata pergerakan vertikal di area bahu
-            if self.shoulder_points:
-                left_shoulder, right_shoulder = self.shoulder_points[-1]
-                lx, ly = left_shoulder
-                rx, ry = right_shoulder
-
-                # Tentukan bounding box di sekitar bahu
-                bbox_size = 10  # Ukuran bounding box (10x10 piksel)
-                left_flow_y = np.mean(flow_y[max(0, ly - bbox_size):min(flow_y.shape[0], ly + bbox_size),
-                                             max(0, lx - bbox_size):min(flow_y.shape[1], lx + bbox_size)])
-                right_flow_y = np.mean(flow_y[max(0, ry - bbox_size):min(flow_y.shape[0], ry + bbox_size),
-                                              max(0, rx - bbox_size):min(flow_y.shape[1], rx + bbox_size)])
-
-                # Tambahkan hasil optical flow ke sinyal
-                avg_flow_y = (left_flow_y + right_flow_y) / 2
-                self.shoulder_motion_signal[-1] += avg_flow_y
-
-        # Simpan frame saat ini sebagai frame sebelumnya untuk iterasi berikutnya
-        self.prev_gray = gray
+    def apply_smoothing(self, signal, window_size=5):
+        if len(signal) < window_size:
+            return signal
+        smoothed_signal = np.convolve(signal, np.ones(
+            window_size) / window_size, mode='valid')
+        return np.concatenate((signal[:window_size - 1], smoothed_signal))
 
     # === Getter ===
 
