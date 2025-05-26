@@ -1,4 +1,4 @@
-﻿# Remote Photoplethysmography (rPPG) - Non-Contact Vital Sign Monitoring
+http://bit.ly/rsvp-tamct﻿# Remote Photoplethysmography (rPPG) - Non-Contact Vital Sign Monitoring
 
 ## 📌 Deskripsi Proyek
 Detak jantungmu, dari kamera biasa.
@@ -26,6 +26,7 @@ Bayangkan memantau kondisi tubuh cukup lewat kamera laptop atau smartphone—tan
 | 29/04/2025      | Membuat repository github                              |   ![Minggu1](logbookPIC/29april2025.png)                                        |
 | 11/05/2025      | Membuat requirements-txt, fitur respiratory dan rPPG                      | ![Minggu 1](logbookPIC/11may2025.jpg)                                         |
 | 17/05/2025      | Merancang GUI dan Try and Error Filter                  | Lupa dokumentasi :)                                                                                              |
+| 25/05/2025      | Pembuatan GUI dan Laporan akhir tugas besar                  | ![Minggu 3](logbookPIC/25may2025report.png) ![Minggu3](logbookPIC/gui.jpg)                                                                                            |
 
 ---
 
