@@ -24,15 +24,95 @@ except ImportError as e:
 
 print("--- landing_page.py: Skrip Mulai Dijalankan ---")
 
-# --- Fungsi Placeholder untuk Aksi Tombol (SEKARANG AKAN JADI METHOD) ---
+# --- Fungsi Placeholder untuk Aksi Tombol  ---
 
 def show_guide(): # Fungsi ini tetap bisa global atau jadi method
     print("DEBUG: Tombol Guide diklik!")
     messagebox.showinfo("Panduan", "Halaman panduan akan ditampilkan di sini.")
 
-def show_credits(): # Fungsi ini tetap bisa global atau jadi method
-    print("DEBUG: Tombol Credit diklik!")
-    messagebox.showinfo("Kredit", "Dibuat oleh: Cindy Nadila Putri\nProyek VitalCam rPPG")
+credit_window = None  # Variabel global untuk menyimpan jendela kredit
+
+def show_credits(parent_window):
+    global credit_window
+
+    # Jika jendela kredit sudah ada dan masih aktif, bawa ke depan saja
+    if credit_window is not None and credit_window.winfo_exists():
+        credit_window.lift()
+        credit_window.focus_force()
+        print("DEBUG: Jendela kredit sudah ada, dibawa ke depan.")
+        return
+
+    print("DEBUG: Tombol Credit diklik! Membuat jendela kredit...")
+    credit_window = tk.Toplevel(parent_window) # Buat Toplevel sebagai child dari parent_window
+    credit_window.title("Credit - VitalCam")
+    
+    # Atur ukuran dan posisi jendela kredit (sesuaikan)
+    window_width = 600
+    window_height = 400
+    # Ambil posisi parent window untuk menempatkan jendela kredit di tengahnya
+    parent_x = parent_window.winfo_x()
+    parent_y = parent_window.winfo_y()
+    parent_w = parent_window.winfo_width()
+    parent_h = parent_window.winfo_height()
+    
+    pos_x = parent_x + (parent_w // 2) - (window_width // 2)
+    pos_y = parent_y + (parent_h // 2) - (window_height // 2)
+    
+    credit_window.geometry(f"{window_width}x{window_height}+{pos_x}+{pos_y}")
+    credit_window.resizable(False, False)
+    credit_window.configure(bg="#1E3A8A") # Warna biru tua (sesuaikan dengan gambarmu: #243B86 atau #1E3A8A)
+
+    # Frame utama di dalam jendela kredit untuk padding
+    main_credit_frame = tk.Frame(credit_window, bg=credit_window.cget('bg'), padx=20, pady=20)
+    main_credit_frame.pack(expand=True, fill=tk.BOTH)
+    
+    # Judul "Credit v" (opsional, bisa di title window saja)
+    lbl_credit_title = tk.Label(main_credit_frame, text="Credit v", font=("Arial", 10, "italic"), fg="lightgrey", bg=credit_window.cget('bg'))
+    lbl_credit_title.pack(anchor="ne", pady=(0, 10)) 
+
+    # Konten Kredit
+    credits_data = [
+        ("Presented by:", "", ("Montserrat", 16, "bold", "underline")), 
+        ("1. Cindy Nadila Putri", "- 122140002", ("Consolas", 14)), 
+        ("2. M. Arief Rahman Hakim", "- 122140083", ("Consolas", 14)),
+        ("3. Zidan Raihan", "- 122140100", ("Consolas", 14))
+    ]
+
+    # Frame untuk menampung daftar nama agar bisa di tengah
+    names_frame = tk.Frame(main_credit_frame, bg=credit_window.cget('bg'))
+    names_frame.pack(expand=True)
+
+    for i, (nama, nim, font_config) in enumerate(credits_data):
+        row_frame = tk.Frame(names_frame, bg=credit_window.cget('bg'))
+        row_frame.pack(fill=tk.X, pady=2)
+
+        # Label Nama
+        font_tuple = font_config if isinstance(font_config, tuple) else ("Montserrat", 14) 
+        
+        if "Presented by" in nama:
+            lbl_name = tk.Label(row_frame, text=nama, font=font_tuple, fg="white", bg=credit_window.cget('bg'), anchor="w", justify=tk.LEFT)
+            lbl_name.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        else:
+            lbl_name = tk.Label(row_frame, text=nama, font=font_tuple, fg="white", bg=credit_window.cget('bg'), width=30, anchor="w", justify=tk.LEFT) # Beri width agar align
+            lbl_name.pack(side=tk.LEFT, padx=(0,10))
+
+            lbl_nim = tk.Label(row_frame, text=nim, font=font_tuple, fg="white", bg=credit_window.cget('bg'), anchor="w", justify=tk.LEFT)
+            lbl_nim.pack(side=tk.LEFT)
+    
+    # Tombol OK atau Tutup
+    btn_close_credit = tk.Button(main_credit_frame, text="Tutup", command=credit_window.destroy)
+    btn_close_credit.pack(pady=(20,0))
+
+    credit_window.transient(parent_window)
+    credit_window.grab_set()
+    parent_window.wait_window(credit_window) 
+
+    def on_credit_close():
+        global credit_window
+        credit_window.destroy()
+        credit_window = None
+
+    credit_window.protocol("WM_DELETE_WINDOW", on_credit_close)
 
 class LandingPage(tk.Tk):
     def __init__(self):
@@ -60,9 +140,9 @@ class LandingPage(tk.Tk):
         self.bg_image_tk_resized = None
         self.button_image_tks = {}
 
-        self.title_font = tkFont.Font(family="Arial", size=32, weight="bold")
-        self.subtitle_font = tkFont.Font(family="Arial", size=20, weight="bold")
-        self.welcome_font = tkFont.Font(family="Arial", size=18, weight="bold")
+        self.title_font = tkFont.Font(family="Montserrat", size=32, weight="bold")
+        self.subtitle_font = tkFont.Font(family="Montserrat", size=20, weight="bold")
+        self.welcome_font = tkFont.Font(family="Montserrat", size=18, weight="bold")
         self.text_fg_color = "white"
 
         self.load_assets()
@@ -73,22 +153,53 @@ class LandingPage(tk.Tk):
         print("DEBUG: LandingPage __init__ - Selesai")
 
     def load_assets(self):
-        # ... (kode load_assets tetap sama seperti sebelumnya) ...
         print("DEBUG: Memuat aset gambar mentah...")
         if not PILLOW_AVAILABLE: return
 
         self.raw_bg_image = self._load_pil_image("bg_lp.png")
+        self.raw_button_images = {}
+        self.bg_image_tk_resized = None
+        self.button_image_tks = {}
         self.raw_button_images["start"] = self._load_pil_image("start.png")
         self.raw_button_images["guide"] = self._load_pil_image("guide.png")
         self.raw_button_images["credit"] = self._load_pil_image("credit.png")
 
+        self.button_canvas_item_ids = {"start": None, "guide": None, "credit": None}
+        self.button_clickable_areas = {"start": None, "guide": None, "credit": None}
+
         if self.raw_bg_image is None:
              messagebox.showwarning("Aset Kritis Hilang", "Gagal memuat gambar latar (bg_lp.png).")
              self.raw_bg_image = Image.new('RGB', (self.initial_width, self.initial_height), (74, 63, 107))
+    
+    # Di dalam kelas LandingPage
 
+    def on_canvas_click(self, event):
+        print(f"DEBUG: Canvas diklik pada ({event.x}, {event.y})")
+        for key, rect in self.button_clickable_areas.items():
+            if rect and rect[0] <= event.x <= rect[2] and rect[1] <= event.y <= rect[3]:
+                print(f"DEBUG: Klik terdeteksi di area tombol '{key}'")
+                if key == "start":
+                    self.launch_main_application()
+                elif key == "guide":
+                    show_guide()
+                elif key == "credit":
+                    show_credits(self)()
+                return
+        print("DEBUG: Klik di canvas, tapi bukan di area tombol.")
+
+    def on_canvas_motion(self, event):
+        on_button_area = False
+        for key, rect in self.button_clickable_areas.items():
+            if rect and rect[0] <= event.x <= rect[2] and rect[1] <= event.y <= rect[3]:
+                on_button_area = True
+                break
+        
+        if on_button_area:
+            self.bg_canvas.config(cursor="hand2")
+        else:
+            self.bg_canvas.config(cursor="")
 
     def _load_pil_image(self, filename):
-        # ... (kode _load_pil_image tetap sama seperti sebelumnya) ...
         try:
             path = os.path.join(self.assets_path, filename)
             img = Image.open(path)
@@ -105,7 +216,6 @@ class LandingPage(tk.Tk):
 
 
     def _create_photo_image(self, pil_image, size=None):
-        # ... (kode _create_photo_image tetap sama seperti sebelumnya) ...
         if not PILLOW_AVAILABLE or pil_image is None: return None
         try:
             current_image = pil_image
@@ -126,15 +236,11 @@ class LandingPage(tk.Tk):
         self.bg_canvas.place(x=0, y=0, relwidth=1, relheight=1)
         print("DEBUG: Canvas latar belakang dibuat.")
 
-        # PERHATIKAN PERUBAHAN `command` DI SINI untuk tombol start
-        self.btn_start_widget = tk.Button(self, command=self.launch_main_application,
-                                   borderwidth=0, highlightthickness=0, relief="flat", cursor="hand2")
-        self.btn_guide_widget = tk.Button(self, command=show_guide, # Tetap fungsi global
-                                   borderwidth=0, highlightthickness=0, relief="flat", cursor="hand2")
-        self.btn_credit_widget = tk.Button(self, command=show_credits, # Tetap fungsi global
-                                    borderwidth=0, highlightthickness=0, relief="flat", cursor="hand2")
-        print("DEBUG: Widget tombol (untuk canvas) dibuat.")
-        print("DEBUG: LandingPage setup_ui_elements - Selesai")
+        self.bg_canvas.bind("<Button-1>", self.on_canvas_click)
+        self.bg_canvas.bind("<Motion>", self.on_canvas_motion)
+
+        print("DEBUG: Event binding untuk klik dan motion di canvas ditambahkan.")
+        print("DEBUG: LandingPage setup_ui_elements - Selesai (tanpa membuat tk.Button untuk tombol utama)")
 
     def launch_main_application(self):
         print("DEBUG: Tombol START diklik! Meluncurkan aplikasi utama...")
@@ -144,9 +250,6 @@ class LandingPage(tk.Tk):
 
             print("DEBUG: Membuat instance AppRPPG...")
             main_app = AppRPPG() # Membuat instance aplikasi utama
-            # diasumsikan AppRPPG adalah subclass dari tk.Tk dan akan memanggil mainloop sendiri
-            # atau memiliki cara sendiri untuk memulai.
-            # Jika AppRPPG juga memanggil mainloop(), ini seharusnya berjalan setelah landing page di-destroy.
             print("DEBUG: Menjalankan main_app.mainloop()... (jika AppRPPG adalah tk.Tk)")
             main_app.mainloop() # Jalankan mainloop dari aplikasi utama
         else:
@@ -155,8 +258,6 @@ class LandingPage(tk.Tk):
                                  "Pastikan file tersebut ada dan tidak ada error impor.")
 
     def on_resize_event(self, event):
-        # ... (kode on_resize_event tetap sama seperti versi "perbaiki kode ini" terakhir) ...
-        # Pastikan di dalam loop tombol, nama variabel tombolnya sesuai (self.btn_start_widget, dll.)
         try:
             current_width = self.winfo_width()
             current_height = self.winfo_height()
@@ -193,44 +294,82 @@ class LandingPage(tk.Tk):
                                        text="WELCOME!", font=self.welcome_font, fill=self.text_fg_color,
                                        anchor=tk.CENTER, tags="landing_text")
             
-            btn_w_ratio = 292 / self.initial_width
-            btn_h_ratio = 100 / self.initial_height
-            btn_w = int(current_width * btn_w_ratio)
-            btn_h = int(current_height * btn_h_ratio)
-            btn_w = max(int(self.initial_width * 0.15), min(btn_w, int(self.initial_width * 0.35)))
-            btn_h = max(int(self.initial_height * 0.05), min(btn_h, int(self.initial_height * 0.12)))
+            self.bg_canvas.delete("canvas_button_tag") 
+            self.button_clickable_areas = {} 
+
+            target_btn_width_ratio = 0.22 
+            target_btn_height_ratio = 0.07 
+
+            # Hitung ukuran target berdasarkan ukuran window saat ini
+            btn_w = int(current_width * target_btn_width_ratio)
+            btn_h = int(current_height * target_btn_height_ratio)
+            
+            # Batasan ukuran tombol dalam piksel absolut
+            min_w_px = 100
+            max_w_px = 292  
+            min_h_px = 40   
+            max_h_px = 70   
+
+            btn_w = max(min_w_px, min(btn_w, max_w_px))
+            btn_h = max(min_h_px, min(btn_h, max_h_px))
 
             current_rely_btn = rely_welcome + (120 / current_height if current_height > 0 else 0.15)
             button_rely_spacing_abs_factor = 25 / self.initial_height
 
-            buttons_map = { # Ganti nama variabel tombol di sini
-                "start": self.btn_start_widget,
-                "guide": self.btn_guide_widget,
-                "credit": self.btn_credit_widget,
-            }
+            buttons_to_draw_on_canvas = [
+                ("start", self.raw_button_images.get("start")),
+                ("guide", self.raw_button_images.get("guide")),
+                ("credit", self.raw_button_images.get("credit"))
+            ]
 
-            for key, btn_widget in buttons_map.items(): # Menggunakan btn_widget dari map
-                raw_img = self.raw_button_images.get(key)
-                if raw_img:
-                    new_btn_img_tk = self._create_photo_image(raw_img, (btn_w, btn_h))
-                    if new_btn_img_tk:
-                        btn_widget.configure(image=new_btn_img_tk)
-                        self.button_image_tks[key] = new_btn_img_tk
-                        btn_widget.image = new_btn_img_tk
+            y_pos_btn_canvas = current_height * current_rely_btn
+
+            for key, raw_img in buttons_to_draw_on_canvas:
+                if raw_img and PILLOW_AVAILABLE:
+                    aspect_ratio = raw_img.width / raw_img.height
+                    resized_width = int(btn_h * aspect_ratio)
+                    photo_img = self._create_photo_image(raw_img, (resized_width, btn_h))
+
+                    if photo_img:
+                        self.button_image_tks[key] = photo_img 
+                        
+                        # Gambar di canvas
+                        x_pos_canvas = current_width / 2 
+                        
+                        # Buat item gambar di canvas
+                        item_id = self.bg_canvas.create_image(
+                            x_pos_canvas, y_pos_btn_canvas, 
+                            anchor=tk.CENTER, 
+                            image=photo_img, 
+                            tags=("canvas_button_tag", f"btn_{key}")
+                        )
+                        self.button_canvas_item_ids[key] = item_id
+                        
+                        # Simpan koordinat (bounding box) tombol untuk deteksi klik
+                        x1 = x_pos_canvas - (resized_width / 2)
+                        y1 = y_pos_btn_canvas - (btn_h / 2)
+                        x2 = x_pos_canvas + (resized_width / 2)
+                        y2 = y_pos_btn_canvas + (btn_h / 2)
+                        self.button_clickable_areas[key] = (x1, y1, x2, y2)
+                        
+                        print(f"DEBUG: Tombol gambar '{key}' digambar di canvas pada ({x_pos_canvas:.0f}, {y_pos_btn_canvas:.0f}) ukuran {btn_w}x{btn_h}")
                     else:
-                        btn_widget.configure(image='', text=key.upper(), font=("Arial",10))
-                else:
-                     btn_widget.configure(image='', text=key.upper() + " (no img)", font=("Arial",10))
+                        # Gagal membuat PhotoImage, bisa gambar teks placeholder di canvas
+                        self.bg_canvas.create_text(current_width / 2, y_pos_btn_canvas, text=key.upper() + " (IMG ERR)",
+                                                   font=("Arial", 10, "bold"), fill="red", anchor=tk.CENTER, tags=("canvas_button_tag", f"btn_{key}"))
+                        self.button_clickable_areas[key] = None
+                        print(f"PERINGATAN DEBUG: Gagal create PhotoImage untuk tombol '{key}'")
+                elif key and not raw_img: # Jika raw_img tidak ada (gagal load awal)
+                     self.bg_canvas.create_text(current_width / 2, y_pos_btn_canvas, text=key.upper() + " (NO IMG)",
+                                                   font=("Arial", 10, "bold"), fill="orange", anchor=tk.CENTER, tags=("canvas_button_tag", f"btn_{key}"))
+                     self.button_clickable_areas[key] = None
+                     print(f"PERINGATAN DEBUG: Raw image untuk tombol '{key}' tidak ada.")
+                
+                # Increment y_pos untuk tombol berikutnya
+                button_spacing_canvas_factor = 35 / self.initial_height
+                y_pos_btn_canvas += btn_h + (current_height * button_spacing_canvas_factor)
 
-                # Tempatkan tombol menggunakan create_window di canvas
-                # atau jika tombol adalah child dari self (jendela utama), gunakan .place()
-                # Untuk konsistensi dengan kode terakhirmu, kita asumsikan tombol adalah child dari self
-                # dan di-place, lalu di-lift di atas canvas.
-                btn_widget.place(relx=0.5, rely=current_rely_btn, anchor=tk.CENTER,
-                                 width=btn_w, height=btn_h)
-                btn_widget.lift(self.bg_canvas)
-                current_rely_btn += (btn_h / current_height if current_height > 0 else 0.1) + button_rely_spacing_abs_factor
-            print(f"DEBUG: Tombol di-update dan diposisikan ulang untuk ukuran {btn_w}x{btn_h}.")
+            print(f"DEBUG: Tombol-tombol (sebagai gambar canvas) di-update dan diposisikan.")
 
         except Exception as e_resize:
             print(f"ERROR KRITIS di on_resize_event: {e_resize}")

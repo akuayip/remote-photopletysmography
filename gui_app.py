@@ -303,24 +303,34 @@ class AppRPPG(tk.Tk):
             if MATPLOTLIB_AVAILABLE:
                 if self.rppg_proc:
                     try:
-                        rppg_plot_data = self.rppg_proc.get_latest_signal_chunk()
-                        if rppg_plot_data is not None and len(rppg_plot_data) > 1: self._update_rppg_plot(rppg_plot_data)
-                        current_hr = self.rppg_proc.get_current_hr(fs=getattr(self.rppg_proc, 'fps', 30))
-                        print(f"DEBUG GUI: get_current_hr() mengembalikan: {current_hr} (tipe: {type(current_hr)})")
-                        self.lbl_hr_value.config(text=f"{current_hr:.0f}" if current_hr is not None else "--")
-                    except AttributeError as ae: print(f"Missing method rPPG: {ae}")
-                    except Exception as e: print(f"Error update rPPG: {e}")
+                        rppg_plot_data = self.rppg_proc.get_filtered_rppg()
+                        if rppg_plot_data is not None and len(rppg_plot_data) > 1: 
+                            self._update_rppg_plot(rppg_plot_data)
+                        current_hr = self.rppg_proc.get_heart_rate() 
+                        print(f"DEBUG GUI: RPPGProcessor.get_heart_rate() mengembalikan: {current_hr}")
+                        self.lbl_hr_value.config(text=f"{current_hr:.0f}" if current_hr is not None and current_hr != 0 else "--")
+                    except AttributeError as ae: 
+                        print(f"DEBUG: Missing method di RPPGProcessor (cek get_filtered_rppg atau get_heart_rate): {ae}")
+                        self.lbl_hr_value.config(text="N/A") 
+                    except Exception as e: 
+                        print(f"Error saat update data rPPG di GUI: {e}")
+                        self.lbl_hr_value.config(text="Err")
+
                 if self.resp_proc:
                     try:
-                        resp_plot_data = self.resp_proc.get_latest_signal_chunk()
+                        resp_plot_data = self.resp_proc.get_filtered_resp()
                         if resp_plot_data is not None and len(resp_plot_data) > 1: self._update_resp_plot(resp_plot_data)
                         video_fps = getattr(self.rppg_proc, 'fps', getattr(self.resp_proc, 'fps', 30))
-                        current_rr = self.resp_proc.get_current_rr(fs=video_fps)
-                        print(f"DEBUG GUI: get_current_rr() mengembalikan: {current_rr} (tipe: {type(current_rr)})")
+                        current_rr = self.resp_proc.get_respiration_rate() 
+                        print(f"DEBUG GUI: RespirasiProcessor.get_respiration_rate() mengembalikan: {current_rr}") # Debug tambahan
+                        self.lbl_rr_value.config(text=f"{current_rr:.0f}" if current_rr is not None and current_rr != 0 else "--")
+                    except AttributeError as ae: 
+                        print(f"DEBUG: Missing method di RespirasiProcessor (cek get_filtered_resp atau get_respiration_rate): {ae}")
+                        self.lbl_rr_value.config(text="N/A")
+                    except Exception as e: 
+                        print(f"Error saat update data Respirasi di GUI: {e}")
+                        self.lbl_rr_value.config(text="Err")
 
-                        self.lbl_rr_value.config(text=f"{current_rr:.0f}" if current_rr is not None else "--")
-                    except AttributeError as ae: print(f"Missing method Resp: {ae}")
-                    except Exception as e: print(f"Error update Resp: {e}")
         if self.webcam_active:
             self.webcam_update_job = self.after(30, self._update_frame)
 
