@@ -10,7 +10,7 @@ class RPPGProcessor:
         self.fps = fps
         self.r, self.g, self.b = [], [], []
         self.filtered_rppg = []
-        self.heart_rate = 0
+        self.heart_rate = None
 
         self.mp_face_detection = mp.solutions.face_detection
         self.face_detection = self.mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
@@ -62,11 +62,14 @@ class RPPGProcessor:
         
 
         # Filter green channel (rPPG) dan hitung HR
-        if len(self.g) >= 30:
-            self.filtered_rppg = bandpass_filter_rppg(self.g, fs=self.fps)
-            self.heart_rate, _ = calculate_heart_rate(self.filtered_rppg, fs=self.fps)
+        min_samples_for_calc = max(1, int(self.fps * 8))
+        if len(self.g) >= min_samples_for_calc:
+            signal_window = np.array(self.g[-min_samples_for_calc:])
+            self.filtered_rppg = bandpass_filter_rppg(signal_window, fs=self.fps)
+            self.heart_rate, peaks = calculate_heart_rate(self.filtered_rppg, fs=self.fps)
+            self.last_hr_peaks = peaks
         else:
-            self.filtered_rppg = self.g
+            self.filtered_rppg = list(self.g)
             self.heart_rate = 0
 
     # ===== Akses ke data =====

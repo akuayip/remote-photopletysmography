@@ -24,101 +24,14 @@ except ImportError as e:
 
 print("--- landing_page.py: Skrip Mulai Dijalankan ---")
 
-# --- Fungsi Placeholder untuk Aksi Tombol  ---
-
-def show_guide(): # Fungsi ini tetap bisa global atau jadi method
-    print("DEBUG: Tombol Guide diklik!")
-    messagebox.showinfo("Panduan", "Halaman panduan akan ditampilkan di sini.")
-
-credit_window = None  # Variabel global untuk menyimpan jendela kredit
-
-def show_credits(parent_window):
-    global credit_window
-
-    # Jika jendela kredit sudah ada dan masih aktif, bawa ke depan saja
-    if credit_window is not None and credit_window.winfo_exists():
-        credit_window.lift()
-        credit_window.focus_force()
-        print("DEBUG: Jendela kredit sudah ada, dibawa ke depan.")
-        return
-
-    print("DEBUG: Tombol Credit diklik! Membuat jendela kredit...")
-    credit_window = tk.Toplevel(parent_window) # Buat Toplevel sebagai child dari parent_window
-    credit_window.title("Credit - VitalCam")
-    
-    # Atur ukuran dan posisi jendela kredit (sesuaikan)
-    window_width = 600
-    window_height = 400
-    # Ambil posisi parent window untuk menempatkan jendela kredit di tengahnya
-    parent_x = parent_window.winfo_x()
-    parent_y = parent_window.winfo_y()
-    parent_w = parent_window.winfo_width()
-    parent_h = parent_window.winfo_height()
-    
-    pos_x = parent_x + (parent_w // 2) - (window_width // 2)
-    pos_y = parent_y + (parent_h // 2) - (window_height // 2)
-    
-    credit_window.geometry(f"{window_width}x{window_height}+{pos_x}+{pos_y}")
-    credit_window.resizable(False, False)
-    credit_window.configure(bg="#1E3A8A") # Warna biru tua (sesuaikan dengan gambarmu: #243B86 atau #1E3A8A)
-
-    # Frame utama di dalam jendela kredit untuk padding
-    main_credit_frame = tk.Frame(credit_window, bg=credit_window.cget('bg'), padx=20, pady=20)
-    main_credit_frame.pack(expand=True, fill=tk.BOTH)
-    
-    # Judul "Credit v" (opsional, bisa di title window saja)
-    lbl_credit_title = tk.Label(main_credit_frame, text="Credit v", font=("Arial", 10, "italic"), fg="lightgrey", bg=credit_window.cget('bg'))
-    lbl_credit_title.pack(anchor="ne", pady=(0, 10)) 
-
-    # Konten Kredit
-    credits_data = [
-        ("Presented by:", "", ("Montserrat", 16, "bold", "underline")), 
-        ("1. Cindy Nadila Putri", "- 122140002", ("Consolas", 14)), 
-        ("2. M. Arief Rahman Hakim", "- 122140083", ("Consolas", 14)),
-        ("3. Zidan Raihan", "- 122140100", ("Consolas", 14))
-    ]
-
-    # Frame untuk menampung daftar nama agar bisa di tengah
-    names_frame = tk.Frame(main_credit_frame, bg=credit_window.cget('bg'))
-    names_frame.pack(expand=True)
-
-    for i, (nama, nim, font_config) in enumerate(credits_data):
-        row_frame = tk.Frame(names_frame, bg=credit_window.cget('bg'))
-        row_frame.pack(fill=tk.X, pady=2)
-
-        # Label Nama
-        font_tuple = font_config if isinstance(font_config, tuple) else ("Montserrat", 14) 
-        
-        if "Presented by" in nama:
-            lbl_name = tk.Label(row_frame, text=nama, font=font_tuple, fg="white", bg=credit_window.cget('bg'), anchor="w", justify=tk.LEFT)
-            lbl_name.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        else:
-            lbl_name = tk.Label(row_frame, text=nama, font=font_tuple, fg="white", bg=credit_window.cget('bg'), width=30, anchor="w", justify=tk.LEFT) # Beri width agar align
-            lbl_name.pack(side=tk.LEFT, padx=(0,10))
-
-            lbl_nim = tk.Label(row_frame, text=nim, font=font_tuple, fg="white", bg=credit_window.cget('bg'), anchor="w", justify=tk.LEFT)
-            lbl_nim.pack(side=tk.LEFT)
-    
-    # Tombol OK atau Tutup
-    btn_close_credit = tk.Button(main_credit_frame, text="Tutup", command=credit_window.destroy)
-    btn_close_credit.pack(pady=(20,0))
-
-    credit_window.transient(parent_window)
-    credit_window.grab_set()
-    parent_window.wait_window(credit_window) 
-
-    def on_credit_close():
-        global credit_window
-        credit_window.destroy()
-        credit_window = None
-
-    credit_window.protocol("WM_DELETE_WINDOW", on_credit_close)
-
 class LandingPage(tk.Tk):
     def __init__(self):
         super().__init__()
         print("DEBUG: LandingPage __init__ - Mulai")
         self.title("VitalCam - Selamat Datang!")
+
+        self.guide_window_instance = None
+        self.credit_window_instance = None
 
         if not PILLOW_AVAILABLE:
             self.withdraw()
@@ -170,8 +83,126 @@ class LandingPage(tk.Tk):
         if self.raw_bg_image is None:
              messagebox.showwarning("Aset Kritis Hilang", "Gagal memuat gambar latar (bg_lp.png).")
              self.raw_bg_image = Image.new('RGB', (self.initial_width, self.initial_height), (74, 63, 107))
-    
-    # Di dalam kelas LandingPage
+
+    def show_guide_window(self): 
+        print("DEBUG: Tombol Guide diklik dari method!")
+        if self.guide_window_instance is not None and self.guide_window_instance.winfo_exists():
+            self.guide_window_instance.lift()
+            self.guide_window_instance.focus_force()
+            print("DEBUG: Jendela guide sudah ada, dibawa ke depan.")
+            return
+
+        self.guide_window_instance = tk.Toplevel(self) 
+        self.guide_window_instance.title("Panduan - VitalCam")
+
+        guide_width = 800  
+        guide_height = 600
+
+        parent_x = self.winfo_x(); parent_y = self.winfo_y()
+        parent_w = self.winfo_width(); parent_h = self.winfo_height()
+        pos_x = parent_x + (parent_w // 2) - (guide_width // 2)
+        pos_y = parent_y + (parent_h // 2) - (guide_height // 2)
+        self.guide_window_instance.geometry(f"{guide_width}x{guide_height}+{pos_x}+{pos_y}")
+
+        self.guide_window_instance.resizable(True, True) 
+        self.guide_window_instance.minsize(400, 300)  
+
+        #Header frame untuk judul panduan
+        guide_header_frame = tk.Frame(self.guide_window_instance, bg="#1E3A8A", height=40)
+        guide_header_frame.pack(fill=tk.X, side=tk.TOP)
+        guide_header_frame.pack_propagate(False)
+        lbl_guide_header = tk.Label(guide_header_frame, text="Guide", font=("Arial", 14, "bold"), fg="white", bg="#1E3A8A")
+        lbl_guide_header.pack(pady=5)
+
+        guide_content_canvas = tk.Canvas(self.guide_window_instance, borderwidth=0, highlightthickness=0)
+        guide_content_canvas.pack(fill=tk.BOTH, expand=True)
+        self.guide_window_instance.guide_content_bg_raw_pil = self._load_pil_image("bg_guide_content.png") 
+        self.guide_window_instance.guide_content_bg_tk_ref = None
+
+        def _resize_and_draw_guide_bg(event=None):
+            if self.guide_window_instance.guide_content_bg_raw_pil and PILLOW_AVAILABLE: # Akses via self.guide_window_instance
+                canvas_w = guide_content_canvas.winfo_width()
+                canvas_h = guide_content_canvas.winfo_height()
+                if canvas_w > 1 and canvas_h > 1:
+                    img_w, img_h = self.guide_window_instance.guide_content_bg_raw_pil.size
+                    scale = max(canvas_w / img_w if img_w > 0 else 1, canvas_h / img_h if img_h > 0 else 1)
+                    new_w, new_h = int(img_w * scale), int(img_h * scale)
+                    resized_img = self.guide_window_instance.guide_content_bg_raw_pil.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                    x_crop = max(0, (new_w - canvas_w) / 2)
+                    y_crop = max(0, (new_h - canvas_h) / 2)
+                    cropped_img = resized_img.crop((x_crop, y_crop, x_crop + canvas_w, y_crop + canvas_h))
+
+                    self.guide_window_instance.guide_content_bg_tk_ref = ImageTk.PhotoImage(cropped_img) 
+                    guide_content_canvas.delete("guide_bg")
+                    guide_content_canvas.create_image(0, 0, anchor=tk.NW, image=self.guide_window_instance.guide_content_bg_tk_ref, tags="guide_bg")
+                    guide_content_canvas.lower("guide_bg") 
+            else: 
+                guide_content_canvas.config(bg="white") 
+
+        guide_content_canvas.bind("<Configure>", _resize_and_draw_guide_bg)
+        self.guide_window_instance.after(50, _resize_and_draw_guide_bg) 
+
+        btn_close_guide = tk.Button(self.guide_window_instance, text="Tutup", 
+                                     command=lambda: self._close_sub_window("guide"))
+        btn_close_guide.pack(pady=10, side=tk.BOTTOM)
+
+        self.guide_window_instance.protocol("WM_DELETE_WINDOW", lambda: self._close_sub_window("guide"))
+        self.guide_window_instance.transient(self)
+        self.guide_window_instance.grab_set()
+
+    def show_credits_window(self): 
+        print("DEBUG: Tombol Credit diklik dari method!")
+        if self.credit_window_instance is not None and self.credit_window_instance.winfo_exists():
+            self.credit_window_instance.lift()
+            self.credit_window_instance.focus_force()
+            print("DEBUG: Jendela kredit sudah ada, dibawa ke depan.")
+            return
+
+        self.credit_window_instance = tk.Toplevel(self)
+        self.credit_window_instance.title("Credit - VitalCam")
+
+        credit_width = 600; credit_height = 400 
+        parent_x = self.winfo_x(); parent_y = self.winfo_y()
+        parent_w = self.winfo_width(); parent_h = self.winfo_height()
+        pos_x = parent_x + (parent_w // 2) - (credit_width // 2)
+        pos_y = parent_y + (parent_h // 2) - (credit_height // 2)
+        self.credit_window_instance.geometry(f"{credit_width}x{credit_height}+{pos_x}+{pos_y}")
+        self.credit_window_instance.resizable(False, False)
+        self.credit_window_instance.configure(bg="#1E3A8A")
+
+        main_credit_frame = tk.Frame(self.credit_window_instance, bg=self.credit_window_instance.cget('bg'), padx=20, pady=20)
+        main_credit_frame.pack(expand=True, fill=tk.BOTH)
+
+        lbl_credit_title_top = tk.Label(main_credit_frame, text="Credit v", font=("Arial", 10, "italic"), fg="lightgrey", bg=self.credit_window_instance.cget('bg'))
+        lbl_credit_title_top.pack(anchor="ne", pady=(0, 10)) 
+
+        credits_data = [
+            ("Presented by:", "", ("Montserrat", 16, "bold", "underline")), 
+            ("1. Cindy Nadila Putri", "- 122140002", ("Consolas", 14)), 
+            ("2. M. Arief Rahman Hakim", "- 122140083", ("Consolas", 14)),
+            ("3. Zidan Raihan", "- 122140100", ("Consolas", 14))
+        ]
+        names_frame = tk.Frame(main_credit_frame, bg=self.credit_window_instance.cget('bg'))
+        names_frame.pack(expand=True) 
+        for nama, nim, font_config in credits_data:
+            row_frame = tk.Frame(names_frame, bg=self.credit_window_instance.cget('bg'))
+            row_frame.pack(fill=tk.X, pady=2)
+            font_tuple = font_config if isinstance(font_config, tuple) else ("Montserrat", 14)
+            if "Presented by" in nama:
+                lbl_name = tk.Label(row_frame, text=nama, font=font_tuple, fg="white", bg=self.credit_window_instance.cget('bg'), anchor="center", justify=tk.CENTER)
+                lbl_name.pack(fill=tk.X, expand=True)
+            else:
+                lbl_name = tk.Label(row_frame, text=nama, font=font_tuple, fg="white", bg=self.credit_window_instance.cget('bg'), width=30, anchor="w", justify=tk.LEFT)
+                lbl_name.pack(side=tk.LEFT, padx=(0,10))
+                lbl_nim = tk.Label(row_frame, text=nim, font=font_tuple, fg="white", bg=self.credit_window_instance.cget('bg'), anchor="w", justify=tk.LEFT)
+                lbl_nim.pack(side=tk.LEFT)
+
+        btn_close_credit = tk.Button(main_credit_frame, text="Tutup", command=lambda: self._close_sub_window("credit")) 
+        btn_close_credit.pack(pady=(20,0))
+
+        self.credit_window_instance.protocol("WM_DELETE_WINDOW", lambda: self._close_sub_window("credit"))
+        self.credit_window_instance.transient(self)
+        self.credit_window_instance.grab_set()
 
     def on_canvas_click(self, event):
         print(f"DEBUG: Canvas diklik pada ({event.x}, {event.y})")
@@ -181,11 +212,23 @@ class LandingPage(tk.Tk):
                 if key == "start":
                     self.launch_main_application()
                 elif key == "guide":
-                    show_guide()
+                    self.show_guide_window()
                 elif key == "credit":
-                    show_credits(self)()
+                    self.show_credits_window()
                 return
         print("DEBUG: Klik di canvas, tapi bukan di area tombol.")
+    
+    def _close_sub_window(self, window_type):
+        if window_type == "guide":
+            if self.guide_window_instance and self.guide_window_instance.winfo_exists():
+                self.guide_window_instance.destroy()
+            self.guide_window_instance = None
+            print("DEBUG: Jendela guide ditutup.")
+        elif window_type == "credit": # TAMBAHKAN ATAU PASTIKAN INI ADA
+            if self.credit_window_instance and self.credit_window_instance.winfo_exists():
+                self.credit_window_instance.destroy()
+            self.credit_window_instance = None
+            print("DEBUG: Jendela credit ditutup.")
 
     def on_canvas_motion(self, event):
         on_button_area = False
@@ -354,12 +397,11 @@ class LandingPage(tk.Tk):
                         
                         print(f"DEBUG: Tombol gambar '{key}' digambar di canvas pada ({x_pos_canvas:.0f}, {y_pos_btn_canvas:.0f}) ukuran {btn_w}x{btn_h}")
                     else:
-                        # Gagal membuat PhotoImage, bisa gambar teks placeholder di canvas
                         self.bg_canvas.create_text(current_width / 2, y_pos_btn_canvas, text=key.upper() + " (IMG ERR)",
                                                    font=("Arial", 10, "bold"), fill="red", anchor=tk.CENTER, tags=("canvas_button_tag", f"btn_{key}"))
                         self.button_clickable_areas[key] = None
                         print(f"PERINGATAN DEBUG: Gagal create PhotoImage untuk tombol '{key}'")
-                elif key and not raw_img: # Jika raw_img tidak ada (gagal load awal)
+                elif key and not raw_img:
                      self.bg_canvas.create_text(current_width / 2, y_pos_btn_canvas, text=key.upper() + " (NO IMG)",
                                                    font=("Arial", 10, "bold"), fill="orange", anchor=tk.CENTER, tags=("canvas_button_tag", f"btn_{key}"))
                      self.button_clickable_areas[key] = None
@@ -377,7 +419,6 @@ class LandingPage(tk.Tk):
             traceback.print_exc()
 
 if __name__ == "__main__":
-    # ... (blok if __name__ == "__main__" tetap sama seperti versi terakhir) ...
     print("DEBUG: Masuk blok if __name__ == '__main__'")
     if not PILLOW_AVAILABLE:
         root_err_check = tk.Tk()
