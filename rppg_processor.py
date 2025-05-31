@@ -59,11 +59,13 @@ class RPPGProcessor:
         self.r.append(r_mean)
         self.g.append(g_mean)
         self.b.append(b_mean)
-        
 
-        # Filter green channel (rPPG) dan hitung HR
+        # Terapkan POS jika cukup frame
         if len(self.g) >= 30:
-            self.filtered_rppg = bandpass_filter_rppg(self.g, fs=self.fps)
+            rgb_signal = np.array([self.r, self.g, self.b]).reshape(1, 3, -1)
+            pos_signal = self.compute_pos(rgb_signal)
+
+            self.filtered_rppg = bandpass_filter_rppg(pos_signal, fs=self.fps)
             self.heart_rate, _ = calculate_heart_rate(self.filtered_rppg, fs=self.fps)
         else:
             self.filtered_rppg = self.g
@@ -83,7 +85,7 @@ class RPPGProcessor:
     def get_heart_rate(self):
         return self.heart_rate
 
-    # (Optional) Metode POS tetap bisa digunakan
+    # Implementasi algoritma POS
     def compute_pos(self, signal):
         eps = 1e-9
         e, c, f = signal.shape
