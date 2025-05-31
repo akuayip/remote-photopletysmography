@@ -27,7 +27,9 @@ Bayangkan memantau kondisi tubuh cukup lewat kamera laptop atau smartphone—tan
 | 11/05/2025      | Membuat requirements-txt, fitur respiratory dan rPPG                      | ![Minggu 1](logbookPIC/11may2025.jpg)                                         |
 | 17/05/2025      | Merancang GUI dan Try and Error Filter                  | Lupa dokumentasi :)                                                                                              |
 | 25/05/2025      | Pembuatan GUI dan Laporan akhir tugas besar                  | ![Minggu 3](logbookPIC/25may2025report.png) ![Minggu3](logbookPIC/gui.jpg)                                                                                            |
-
+| 26/05/2025      | Pembuatan GUI landing page dan main dashboard                  | ![Minggu 3](logbookPIC/26may2025landingpage.png) ![Minggu3](logbookPIC/26may2025mainapp.png)                                                                                            |
+| 27/05/2025      | Pembuatan GUI guide page dan credit page                  | ![Minggu 3](logbookPIC/27may2025guidepage.png) ![Minggu3](logbookPIC/27may2025creditpage.png)                                                                                            |
+| 31/05/2025      | Melanjutkan penyusunan laporan akhir tugas besar                              |   ![Minggu3](logbookPIC/31may2025laporan.png)                                        |
 ---
 
 ## 💻 Instruksi Instalasi
