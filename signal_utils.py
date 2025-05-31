@@ -8,7 +8,7 @@ from scipy.signal import butter, filtfilt, find_peaks, savgol_filter
 # ==========================================
 
 
-def bandpass_filter_rppg(data, fs=30, low=0.9, high=2.4, order=3):
+def bandpass_filter_rppg(data, fs=30, low=0.9, high=2.4, order=4):
     """
     Bandpass filter for rPPG signal (heart rate domain).
     Default: 54–144 bpm (0.9–2.4 Hz)
