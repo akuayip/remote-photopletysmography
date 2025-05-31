@@ -10,31 +10,26 @@ class SignalDashboard:
         self.resp = respirasi_processor
         self.cap = cv2.VideoCapture(0)
 
-        # Layout 2x2
         self.fig = plt.figure(figsize=(12, 8))
-        gs = gridspec.GridSpec(2, 2, width_ratios=[2, 1], height_ratios=[1, 1], figure=self.fig)
+        gs = gridspec.GridSpec(2, 2, width_ratios=[2, 1])
 
-        # Sinyal rPPG
+        # Subplot sinyal rPPG
         self.ax_rppg = self.fig.add_subplot(gs[0, 0])
         self.ax_rppg.set_title("Sinyal rPPG")
         self.rppg_line, = self.ax_rppg.plot([], [], color='green')
 
-        # Sinyal respirasi
+        # Subplot sinyal respirasi
         self.ax_resp = self.fig.add_subplot(gs[1, 0])
         self.ax_resp.set_title("Sinyal Respirasi (Pergerakan Bahu)")
         self.resp_line, = self.ax_resp.plot([], [], color='orange')
 
-        # Kamera (kanan atas)
-        self.ax_cam = self.fig.add_subplot(gs[0, 1])
-        self.ax_cam.set_title("Camera")
+        # Subplot kamera
+        self.ax_cam = self.fig.add_subplot(gs[:, 1])
+        self.ax_cam.set_title("Camera)")
         self.img_cam = self.ax_cam.imshow(np.zeros((480, 640, 3), dtype=np.uint8))
         self.ax_cam.axis("off")
 
-        # Informasi angka realtime (kanan bawah)
-        self.ax_info = self.fig.add_subplot(gs[1, 1])
-        self.ax_info.axis("off")
-
-        # Batas awal
+        # Batas sumbu awal
         self.ax_rppg.set_xlim(0, 100)
         self.ax_resp.set_xlim(0, 100)
         self.ax_rppg.set_ylim(0, 255)
@@ -45,63 +40,47 @@ class SignalDashboard:
         if not ret:
             return
 
-        frame = cv2.resize(frame, (640, 480))
-
-        # Gambar kotak ROI rPPG
+        # Ambil dan gambar kotak hijau di jidat
         rect = self.rppg.get_forehead_rect()
         if rect:
             x1, y1, x2, y2 = rect
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-        # Ekstraksi sinyal
+        frame = cv2.resize(frame, (640, 480))
+
         self.rppg.extract_rgb_from_frame(frame)
         self.resp.extract_resp_from_frame(frame)
 
-        # Titik bahu
+        # Ambil data sinyal
+        rppg_data = self.rppg.g[-100:]
+        resp_data = self.resp.get_signal()[-100:]
+
+        # Convert BGR ke RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Menambahkan titik bahu kiri dan kanan dari MediaPipe Pose
         shoulder_points = self.resp.get_shoulder_points()
         if shoulder_points:
             left_shoulder, right_shoulder = shoulder_points[-1]
             if left_shoulder[0] > 0 and left_shoulder[1] > 0:
-                cv2.circle(frame, left_shoulder, 6, (0, 255, 0), -1)
+                cv2.circle(frame_rgb, left_shoulder, 6, (0, 255, 0), -1)  # Bahu Kiri
             if right_shoulder[0] > 0 and right_shoulder[1] > 0:
-                cv2.circle(frame, right_shoulder, 6, (0, 255, 0), -1)
+                cv2.circle(frame_rgb, right_shoulder, 6, (0, 255, 0), -1)  # Bahu Kanan
 
-        # Konversi dan tampilkan kamera
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        self.img_cam.set_data(frame_rgb)
-
-        # Ambil sinyal yang telah DIFILTER
-        rppg_data = self.rppg.get_filtered_rppg()[-100:]
-        resp_data = self.resp.get_filtered_resp()[-100:]
-
-        # Update grafik
+        # Update grafik sinyal
         self.rppg_line.set_data(np.arange(len(rppg_data)), rppg_data)
         self.resp_line.set_data(np.arange(len(resp_data)), resp_data)
+        self.img_cam.set_data(frame_rgb)
 
-        # Update sumbu grafik
+        # Update sumbu X
         self.ax_rppg.set_xlim(0, len(rppg_data))
         self.ax_resp.set_xlim(0, len(resp_data))
 
+        # Update sumbu Y dinamis
         if len(rppg_data) > 0:
             self.ax_rppg.set_ylim(min(rppg_data) - 10, max(rppg_data) + 10)
         if len(resp_data) > 0:
             self.ax_resp.set_ylim(min(resp_data) - 1, max(resp_data) + 1)
-
-
-        # Ambil nilai HR & RR
-        hr = self.rppg.get_heart_rate()
-        rr = self.resp.get_respiration_rate()
-
-        # Update nilai info
-        self.ax_info.clear()
-        self.ax_info.axis("off")
-        self.ax_info.set_title("Nilai Real-Time")
-
-        self.ax_info.text(0.3, 0.6, "HR (bpm)", fontsize=10, ha='center')
-        self.ax_info.text(0.3, 0.3, f"{hr:.1f}", fontsize=20, ha='center', color='green')
-
-        self.ax_info.text(0.7, 0.6, "RR (bpm)", fontsize=10, ha='center')
-        self.ax_info.text(0.7, 0.3, f"{rr:.1f}", fontsize=20, ha='center', color='orange')
 
     def run(self):
         ani = animation.FuncAnimation(
