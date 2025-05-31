@@ -57,15 +57,10 @@ class RespirasiProcessor:
 
         # Filter sinyal respirasi dan hitung RR (napas per menit)
         if len(self.shoulder_motion_signal) >= 30:
-            try:
-                self.filtered_signal = bandpass_filter_respirasi(
-                    self.shoulder_motion_signal, fs=self.fps)
-                rr, _ = calculate_respiration_rate(self.filtered_signal, fs=self.fps)
-                self.respiration_rate = rr if rr is not None else 0
-            except Exception as e:
-                print(f"ERROR menghitung respirasi: {e}")
-                self.filtered_signal = self.shoulder_motion_signal
-                self.respiration_rate = 0
+            self.filtered_signal = bandpass_filter_respirasi(
+                self.shoulder_motion_signal, fs=self.fps)
+            self.respiration_rate, _ = calculate_respiration_rate(
+                self.filtered_signal, fs=self.fps)
         else:
             self.filtered_signal = self.shoulder_motion_signal
             self.respiration_rate = 0

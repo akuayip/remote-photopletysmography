@@ -10,7 +10,7 @@ class RPPGProcessor:
         self.fps = fps
         self.r, self.g, self.b = [], [], []
         self.filtered_rppg = []
-        self.heart_rate = None
+        self.heart_rate = 0
 
         self.mp_face_detection = mp.solutions.face_detection
         self.face_detection = self.mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
@@ -62,14 +62,11 @@ class RPPGProcessor:
         
 
         # Filter green channel (rPPG) dan hitung HR
-        min_samples_for_calc = max(1, int(self.fps * 8))
-        if len(self.g) >= min_samples_for_calc:
-            signal_window = np.array(self.g[-min_samples_for_calc:])
-            self.filtered_rppg = bandpass_filter_rppg(signal_window, fs=self.fps)
-            self.heart_rate, peaks = calculate_heart_rate(self.filtered_rppg, fs=self.fps)
-            self.last_hr_peaks = peaks
+        if len(self.g) >= 30:
+            self.filtered_rppg = bandpass_filter_rppg(self.g, fs=self.fps)
+            self.heart_rate, _ = calculate_heart_rate(self.filtered_rppg, fs=self.fps)
         else:
-            self.filtered_rppg = list(self.g)
+            self.filtered_rppg = self.g
             self.heart_rate = 0
 
     # ===== Akses ke data =====
@@ -85,44 +82,6 @@ class RPPGProcessor:
 
     def get_heart_rate(self):
         return self.heart_rate
-
-    def get_latest_signal_chunk(self, num_samples=200, channel='g'):
-        
-        signal_source = []
-        if channel == 'r' and hasattr(self, 'r'):
-            signal_source = self.r
-        elif channel == 'g' and hasattr(self, 'g'):
-            signal_source = self.g
-        elif channel == 'b' and hasattr(self, 'b'):
-            signal_source = self.b
-        else: # Fallback ke hijau jika channel tidak dikenal atau tidak ada
-            signal_source = self.g if hasattr(self, 'g') else []
-        
-        if signal_source:
-            return signal_source[-num_samples:]
-        return []
-
-    def get_current_hr(self, window_size_seconds=10, fs_param=None):
-        
-        if fs_param is None:
-            fs_param = self.fps
-        
-        if not isinstance(fs_param, (int, float)) or fs_param <= 0:
-            print(f"ERROR rppg_processor: fs_param tidak valid di get_current_hr: {fs_param}")
-            return None # Atau 0, atau nilai error spesifik
-
-        required_samples = int(window_size_seconds * fs_param)
-        
-        signal_source = self.g 
-        
-        if len(signal_source) < required_samples:
-            print(f"DEBUG RPPG HR: Data sinyal G belum cukup ({len(signal_source)}/{required_samples})")
-            return None 
-
-        current_signal_window = np.array(signal_source[-required_samples:])
-        filtered_signal = bandpass_filter_rppg(current_signal_window, fs=fs_param)
-        hr, _ = calculate_heart_rate(filtered_signal, fs=fs_param)
-        return hr
 
     # (Optional) Metode POS tetap bisa digunakan
     def compute_pos(self, signal):
