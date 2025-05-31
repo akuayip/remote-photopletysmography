@@ -177,7 +177,6 @@ class AppRPPG(tk.Tk):
         if not self.webcam_active or not self.cap or not self.cap.isOpened(): self.stop_webcam_feed(); return
         ret, frame = self.cap.read()
         if ret:
-            frame = cv2.flip(frame, 0)  # Flip the frame vertically
             frame_asli = frame.copy(); frame_tampil = frame.copy()
             hr_val, rr_val = None, None
             rppg_data_for_plot, resp_data_for_plot, hr_peaks_for_plot = [], [], []
